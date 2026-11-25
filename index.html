@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Quiz Tiếng Trung 🀄</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;700&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="corner-data" id="corner-data">
+  <button class="corner-btn" data-click="exportData" title="Xuất data (lưu tiến trình ra file .json)" aria-label="Xuất data">💾</button>
+  <button class="corner-btn" data-click="@click:import-file" title="Nhập data (từ file .json)" aria-label="Nhập data">📥</button>
+  <input type="file" id="import-file" accept=".json" style="display:none;" data-change="importData" data-args="@event">
+</div>
+<audio id="bg-music" src="Music/music1.mp3" loop preload="auto"></audio>
+<div class="top-bar">
+  <button class="top-btn" data-click="cycleTheme" title="Đổi giao diện">🎨</button>
+  <button class="top-btn" data-click="openSettings" title="Cài đặt">⚙️</button>
+  <button class="top-btn" data-click="changeMusicTrack" title="Đổi bài nhạc nền (Music/music1.mp3, music2.mp3…)">🎵</button>
+</div>
+<div class="container">
+    <div id="welcome-screen">
+    <div class="home-hero">
+      <span class="logo-icon">🀄</span>
+      <div class="hero-text">
+        <h1 class="welcome-title">Quiz Tiếng Trung</h1>
+        <p class="welcome-sub">Test trình độ Hán ngữ của mày!</p>
+      </div>
+    </div>
+    <div class="home-progress" id="home-progress" data-click="openStats" title="Xem thống kê">
+      <div class="goal-ring" id="goal-ring"><span id="goal-ring-text">0%</span></div>
+      <div class="hp-info">
+        <div class="hp-title">Mục tiêu hôm nay</div>
+        <div class="hp-sub" id="hp-sub">0 / 20 câu</div>
+      </div>
+      <div class="hp-chips">
+        <span class="chip" id="chip-streak">🔥 0 ngày</span>
+        <span class="chip" id="chip-level">⚡ Lv 1</span>
+      </div>
+    </div>
+    <div class="dict-section">
+      <div class="dict-search-wrap">
+        <span class="dict-search-icon">🔍</span>
+        <input type="text" id="dict-search" class="dict-input" placeholder="Tra từ nhanh…" autocomplete="off" data-input="handleDictSearch" data-args="@value">
+        <button class="dict-clear" id="dict-clear" data-click="clearDictSearch">✕</button>
+        <button class="dict-upload-btn" data-click="@click:txt-upload" title="Chọn file txt">📂</button>
+        <input type="file" id="txt-upload" accept=".txt" multiple style="display:none" data-change="handleTxtUpload" data-args="@event">
+      </div>
+      <div id="dict-results" class="dict-results"></div>
+    </div>
+    <div class="main-menu" id="main-menu">
+      <button class="menu-card mc-trans" data-click="openTranslate"><span class="mc-icon">🌐</span><span class="mc-title">Dịch</span><span class="mc-desc">Việt ⇄ Trung theo ngữ pháp</span></button>
+      <button class="menu-card mc-vocab" data-click="openVocabHub"><span class="mc-icon">📚</span><span class="mc-title">Từ vựng</span><span class="mc-desc">HSK 1–6 · Khẩu ngữ</span></button>
+      <button class="menu-card mc-game" data-click="openGames"><span class="mc-icon">🎮</span><span class="mc-title">Mini game</span><span class="mc-desc">Đấu trí · ôn thẻ · sổ lỗi…</span></button>
+      <button class="menu-card mc-stats" data-click="openStats"><span class="mc-icon">📈</span><span class="mc-title">Thống kê</span><span class="mc-desc">Tiến độ · chuỗi ngày</span></button>
+    </div>
+    <div class="menu-slot" id="menu-slot"></div>
+  </div>
+    <div id="game-screen">
+    <div class="screen-header">
+      <button class="btn-back" data-click="goMain">⬅️ Quay lại</button>
+      <h2 class="screen-title">🎮 Mini game</h2>
+    </div>
+    <div id="due-review-banner" class="due-banner" data-click="startDueReview">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:24px;">🔥</span>
+        <div class="due-banner-text">Hôm nay có <span class="due-banner-count" id="due-count">0</span> từ đến hạn ôn!</div>
+      </div>
+      <button class="due-banner-btn">Ôn Ngay ➡️</button>
+    </div>
+    <div class="feature-grid">
+      <button class="btn-feature srs" data-click="openSRS">🧠 Sổ tay lỗi</button>
+      <button class="btn-feature flash" data-click="startSRSFlash">🃏 Ôn thẻ</button>
+      <button class="btn-feature hsktest" data-click="openHSKQuiz">📝 Kiểm tra HSK</button>
+    </div>
+    <div class="mode-grid">
+      <button class="mode-card dict-mode" data-click="startGame" data-args="dict">
+        <span class="mode-icon">🚀</span>
+        <div class="mode-title">Đấu trí</div>
+        <div class="mode-desc">Random</div>
+      </button>
+      <button class="mode-card listen-mode" data-click="startListenGame">
+        <span class="mode-icon">🎧</span>
+        <div class="mode-title">Nghe đoán</div>
+        <div class="mode-desc">Luyện tai</div>
+      </button>
+      <button class="mode-card match-mode" data-click="startMatchGame">
+        <span class="mode-icon">🧩</span>
+        <div class="mode-title">Nối từ</div>
+        <div class="mode-desc">Ghép cặp</div>
+      </button>
+    </div>
+  </div>
+    <div id="tr-screen">
+    <div class="screen-header">
+      <button class="btn-back" data-click="goHome">⬅️ Quay lại</button>
+      <h2 class="screen-title">🌐 Dịch</h2>
+    </div>
+    <div id="tr-root" class="tr-root"></div>
+  </div>
+    <div id="stats-screen">
+    <div class="screen-header">
+      <button class="btn-back" data-click="goHome">⬅️ Quay lại</button>
+      <h2 class="screen-title">Thống kê Học tập</h2>
+    </div>
+    <div class="stat-cards">
+      <div class="stat-box streak"><div class="stat-num" id="stat-streak">0</div><div class="stat-label">🔥 Chuỗi ngày học</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-best">0</div><div class="stat-label">🏆 Kỷ lục chuỗi</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Câu đã làm</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-acc">0%</div><div class="stat-label">Độ chính xác</div></div>
+    </div>
+    <div class="xp-card">
+      <div class="xp-top"><span id="xp-level">Lv 1</span><span id="xp-text">0 XP</span></div>
+      <div class="xp-track"><div class="xp-fill" id="xp-fill"></div></div>
+      <div class="xp-sub" id="xp-sub"></div>
+    </div>
+    <div class="stat-head">
+      <h3 class="stat-h3" style="margin:0;">Hoạt động</h3>
+      <div class="seg" id="range-seg">
+        <button class="active" data-click="openStats" data-args="7|@this">7 ngày</button>
+        <button data-click="openStats" data-args="30|@this">30 ngày</button>
+      </div>
+    </div>
+    <div class="chart-legend">
+      <div class="legend-item"><div class="legend-dot green"></div> Đúng</div>
+      <div class="legend-item"><div class="legend-dot red"></div> Sai</div>
+    </div>
+    <div class="chart-container" id="chart-container"></div>
+    <h3 class="stat-h3">Bản đồ học tập · 12 tuần</h3>
+    <div class="heatmap" id="heatmap"></div>
+    <h3 class="stat-h3">Tiến độ HSK</h3>
+    <div id="hsk-progress"></div>
+    <h3 class="stat-h3">Sổ tay lỗi theo mức nhớ</h3>
+    <div id="srs-dist"></div>
+    <h3 class="stat-h3">Từ hay sai nhất</h3>
+    <div id="weak-list"></div>
+    <button class="btn-reset" data-click="showResetModal">🔄 Reset toàn bộ lịch sử</button>
+  </div>
+    <div id="srs-screen">
+    <div class="screen-header">
+      <button class="btn-back" data-click="goHome">⬅️ Quay lại</button>
+      <h2 class="screen-title">Sổ tay Ôn lỗi</h2>
+    </div>
+    <div class="srs-actions" id="srs-actions">
+      <button class="btn-start-srs" data-click="startSRSGame" id="btn-start-srs">🚀 Trắc nghiệm</button>
+      <button class="btn-start-srs flash" data-click="startSRSFlash" id="btn-flash-srs">🃏 Ôn thẻ</button>
+    </div>
+    <div class="vocab-tabs" id="srs-tabs">
+      <button class="hsk-tab active" id="srs-tab-due" data-click="setSRSTab" data-args="due|@this">🔴 Cần ôn</button>
+      <button class="hsk-tab" id="srs-tab-all" data-click="setSRSTab" data-args="all|@this">📚 Tất cả</button>
+      <button class="hsk-tab" id="srs-tab-done" data-click="setSRSTab" data-args="done|@this">✅ Đã thuộc</button>
+    </div>
+    <div class="srs-list" id="srs-list"></div>
+  </div>
+    <div id="flash-screen">
+    <div class="quiz-header">
+      <span class="mode-badge srs-mode" id="f-badge">🃏 Thẻ ghi nhớ</span>
+      <span class="question-counter" id="f-counter">1 / 10</span>
+      <div class="header-actions"><button class="btn-icon" data-click="goHome" title="Thoát">✕</button></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="f-progress" style="width:0%"></div></div>
+    <div class="flash-card" id="flash-card" data-click="flipFlash">
+      <div class="fc-han" id="fc-han"></div>
+      <button class="v-speak" id="fc-speak" title="Nghe phát âm" data-click="speakFlash">🔊</button>
+      <div class="fc-back" id="fc-back"></div>
+    </div>
+    <div class="flash-hint" id="flash-hint">Chạm vào thẻ để lật · Space</div>
+    <div class="flash-actions" id="flash-actions">
+      <button class="fl-btn forget" data-click="rateFlash" data-args="0">😵 Quên<small>phím 1</small></button>
+      <button class="fl-btn hard" data-click="rateFlash" data-args="1">🤔 Mơ hồ<small>phím 2</small></button>
+      <button class="fl-btn easy" data-click="rateFlash" data-args="2">😎 Nhớ<small>phím 3</small></button>
+    </div>
+  </div>
+    <div id="vocab-screen">
+    <div class="vocab-header">
+      <button class="btn-back" data-click="closeVocab">⬅️ Quay lại</button>
+      <h2 class="screen-title">📚 Từ vựng</h2>
+    </div>
+    <div class="vocab-switch">
+      <button class="vs-tab" data-vs="hsk" data-click="openVocabHub" data-args="hsk">🎓 HSK 1–6</button>
+      <button class="vs-tab" data-vs="data" data-click="openVocabHub" data-args="data">📖 Khẩu ngữ</button>
+    </div>
+    <div class="vocab-tabs">
+      <button class="vocab-tab active" data-filter="all" data-click="filterVocabType" data-args="all|@this">📚 Tất cả</button>
+      <button class="vocab-tab" data-filter="word" data-click="filterVocabType" data-args="word|@this">🔤 Từ vựng</button>
+      <button class="vocab-tab" data-filter="sentence" data-click="filterVocabType" data-args="sentence|@this">💬 Mẫu câu</button>
+    </div>
+    <div class="vocab-search-wrap">
+      <span class="dict-search-icon">🔍</span>
+      <input type="text" id="vocab-search" class="dict-input" placeholder="Tìm Hán tự, pinyin hoặc nghĩa..." autocomplete="off" data-input="filterVocabList" data-args="@value">
+    </div>
+    <div id="vocab-count" style="font-size:12px;color:var(--muted);margin-bottom:10px;text-align:right;"></div>
+    <div class="vocab-main">
+      <div class="vocab-list" id="vocab-list"></div>
+      <div class="alphabet-sidebar" id="alphabet-sidebar"></div>
+    </div>
+  </div>
+    <div id="hsk-screen">
+    <div class="vocab-header">
+      <button class="btn-back" data-click="closeHSK">⬅️ Quay lại</button>
+      <h2 class="screen-title">📚 Từ vựng</h2>
+    </div>
+    <div class="vocab-switch">
+      <button class="vs-tab" data-vs="hsk" data-click="openVocabHub" data-args="hsk">🎓 HSK 1–6</button>
+      <button class="vs-tab" data-vs="data" data-click="openVocabHub" data-args="data">📖 Khẩu ngữ</button>
+    </div>
+    <div class="vocab-tabs" id="hsk-level-tabs">
+      <button class="hsk-tab" data-level="all" data-click="filterHSKLevel" data-args="all|@this">📚 Tất cả</button>
+      <button class="hsk-tab active" data-level="HSK1" data-click="filterHSKLevel" data-args="HSK1|@this">HSK 1</button>
+      <button class="hsk-tab" data-level="HSK2" data-click="filterHSKLevel" data-args="HSK2|@this">HSK 2</button>
+      <button class="hsk-tab" data-level="HSK3" data-click="filterHSKLevel" data-args="HSK3|@this">HSK 3</button>
+      <button class="hsk-tab" data-level="HSK4" data-click="filterHSKLevel" data-args="HSK4|@this">HSK 4</button>
+      <button class="hsk-tab" data-level="HSK5" data-click="filterHSKLevel" data-args="HSK5|@this">HSK 5</button>
+      <button class="hsk-tab" data-level="HSK6" data-click="filterHSKLevel" data-args="HSK6|@this">HSK 6</button>
+    </div>
+    <div class="vocab-search-wrap">
+      <span class="dict-search-icon">🔍</span>
+      <input type="text" id="hsk-search" class="dict-input" placeholder="Tìm Hán tự, pinyin hoặc nghĩa..." autocomplete="off" data-input="filterHSKList" data-args="@value">
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><button class="btn-mini" data-click="startHSKFlash">🃏 Học thẻ cấp này</button><div id="hsk-count" style="font-size:12px;color:var(--muted);text-align:right;"></div></div>
+    <div class="vocab-main">
+      <div class="vocab-list" id="hsk-list"></div>
+      <div class="alphabet-sidebar" id="hsk-sidebar"></div>
+    </div>
+  </div>
+    <div id="quiz-screen">
+    <div class="quiz-header">
+      <span class="mode-badge dict-mode" id="mode-badge">🚀 Đấu trí</span>
+      <span class="question-counter" id="q-counter">CÂU 1 / 10</span>
+      <div class="header-actions">
+        <span class="combo-chip"></span>
+        <button class="btn-icon" data-click="toggleQuizDict" data-args="true" title="Tra từ điển">🔍</button>
+        <button class="btn-icon" data-click="togglePause" data-args="true" title="Tạm dừng">⏸️</button>
+        <div class="score-badge" id="score-display">⭐ 0</div>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-bar" style="width:0%"></div></div>
+    <div class="timer-track"><div class="timer-fill"></div></div>
+    <div class="question-card">
+      <div class="question-num" id="q-num">Câu hỏi 1</div>
+      <div class="question-text" id="q-text"></div>
+      <div class="question-pinyin" id="q-pinyin" style="display:none"></div>
+      <button class="btn-speak hidden" id="btn-speak" data-click="speakCurrentQuestion">🔊 Nghe phát âm</button>
+      <button class="tts-rate-btn" type="button" data-click="cycleTTSRate" data-args="@fn:speakCurrentQuestion">🚶 0.85x</button><button class="tts-rate-btn tts-replay" type="button" data-click="speakCurrentQuestion" title="Nghe lại">🔊 Nghe lại</button>
+    </div>
+    <div class="options-grid" id="options-grid"></div>
+    <div class="feedback-msg" id="feedback"></div>
+    <div class="reveal-card" id="reveal"></div>
+    <div class="quiz-actions">
+      <button class="btn-next" id="btn-next" data-click="nextQuestion">Câu Tiếp Theo →</button>
+    </div>
+  </div>
+    <div id="listen-screen">
+    <div class="quiz-header">
+      <span class="mode-badge listen-mode">🎧 Nghe đoán</span>
+      <span class="question-counter" id="l-counter">CÂU 1 / 10</span>
+      <div class="header-actions">
+        <span class="combo-chip"></span>
+        <button class="btn-icon" data-click="togglePause" data-args="true" title="Tạm dừng">⏸️</button>
+        <div class="score-badge" id="l-score">⭐ 0</div>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="l-progress" style="width:0%"></div></div>
+    <div class="timer-track"><div class="timer-fill"></div></div>
+    <div class="question-card" style="text-align:center;">
+      <div class="question-num" style="justify-content:center;" id="l-num">Bấm để nghe âm thanh</div>
+      <button class="btn-speak big-listen" id="l-speak-btn" data-click="playListenAudio">🔊</button>
+      <div><button class="tts-rate-btn" type="button" data-click="cycleTTSRate" data-args="@fn:playListenAudio">🚶 0.85x</button><button class="tts-rate-btn tts-replay" type="button" data-click="playListenAudio" title="Nghe lại">🔊 Nghe lại</button></div>
+    </div>
+    <div class="options-grid" id="l-options"></div>
+    <div class="feedback-msg" id="l-feedback"></div>
+    <div class="reveal-card" id="l-reveal"></div>
+    <div class="quiz-actions">
+      <button class="btn-next" id="l-next" data-click="nextListenQuestion">Câu Tiếp Theo →</button>
+    </div>
+  </div>
+    <div id="match-screen">
+    <div class="quiz-header">
+      <span class="mode-badge match-mode">🧩 Nối từ</span>
+      <span class="question-counter" id="m-counter">MÀN 1 / 5</span>
+      <div class="header-actions">
+        <button class="btn-icon" data-click="togglePause" data-args="true" title="Tạm dừng">⏸️</button>
+        <div class="score-badge" id="m-score">⭐ 0</div>
+      </div>
+    </div>
+    <p style="color:var(--muted);font-size:13px;text-align:center;margin-bottom:16px;">Nối chữ Hán bên trái với nghĩa đúng bên phải</p>
+    <div class="match-container">
+      <div class="match-col" id="m-left"></div>
+      <div class="match-col" id="m-right"></div>
+    </div>
+    <div class="feedback-msg" id="m-feedback"></div>
+    <div class="quiz-actions">
+      <button class="btn-next" id="m-next" data-click="nextMatchRound">Màn Tiếp Theo →</button>
+    </div>
+  </div>
+    <div id="result-screen">
+    <span class="result-emoji" id="result-emoji">🏆</span>
+    <h2 class="result-title" id="result-title">Xuất Sắc!</h2>
+    <p class="result-subtitle" id="result-sub">Hoàn thành bài quiz</p>
+    <div class="score-display">
+      <div class="score-big" id="score-big">0</div>
+      <div class="score-total" id="score-total">trên 10 câu</div>
+      <div class="score-bar-wrap"><div class="score-bar-fill" id="score-bar"></div></div>
+      <div class="score-percent" id="score-pct">0%</div>
+    </div>
+    <div class="result-chips" id="result-chips"></div>
+    <div class="review-box" id="review-box"></div>
+    <div class="result-actions">
+      <button class="btn-practice" id="btn-practice-wrong" data-click="practiceSessionWrong">🧠 Luyện câu sai</button>
+      <button class="btn-restart" data-click="restartCurrentGame">🔄 Chơi Lại</button>
+      <button class="btn-home" data-click="goHome">🏠 Trang Chủ</button>
+    </div>
+  </div>
+</div>
+<div id="settings-modal" class="modal-time-overlay">
+  <div class="modal-time-box settings-box">
+    <button type="button" class="settings-back" data-click="closeSettings" aria-label="Quay lại" title="Quay lại">←</button>
+    <div class="modal-time-title" style="color:var(--accent2);">⚙️ Cài đặt</div>
+    <div class="modal-time-desc">Tùy chỉnh âm thanh và giọng đọc</div>
+    <div class="settings-list">
+      <label class="setting-row">
+        <span>🔊 Giọng đọc (Voice)</span>
+        <input type="checkbox" id="setting-voice" class="toggle-switch" data-change="updateSetting" data-args="voice|@checked">
+      </label>
+      <label class="setting-row">
+        <span>🎵 Âm thanh đúng/sai</span>
+        <input type="checkbox" id="setting-sound" class="toggle-switch" data-change="updateSetting" data-args="sound|@checked">
+      </label>
+      <label class="setting-row">
+        <span>🎶 Nhạc nền</span>
+        <input type="checkbox" id="setting-music" class="toggle-switch" data-change="updateSetting" data-args="music|@checked">
+      </label>
+      <div class="setting-row" style="cursor:default">
+        <span>🎵 Đổi bài nhạc</span>
+        <button class="btn-mini" data-click="changeMusicTrack" title="Chuyển sang bài kế tiếp trong thư mục Music">🔁 <span id="music-track-label">music1.mp3</span></button>
+      </div>
+      <label class="setting-row">
+        <span>🎧 Tự phát âm khi Nghe đoán</span>
+        <input type="checkbox" id="setting-autoplay" class="toggle-switch" data-change="updateSetting" data-args="autoplay|@checked">
+      </label>
+      <label class="setting-row">
+        <span>🗣️ Tự đọc từ khi hiện câu hỏi</span>
+        <input type="checkbox" id="setting-autospeak" class="toggle-switch" data-change="updateSetting" data-args="autospeak|@checked">
+      </label>
+      <div class="volume-row">
+        <div class="volume-row-label"><span>⏱️ Đếm ngược mỗi câu</span><span id="timer-label">Tắt</span></div>
+        <div class="seg" id="timer-seg">
+          <button data-v="0" data-click="setTimerSec" data-args="0">Tắt</button>
+          <button data-v="10" data-click="setTimerSec" data-args="10">10s</button>
+          <button data-v="15" data-click="setTimerSec" data-args="15">15s</button>
+          <button data-v="20" data-click="setTimerSec" data-args="20">20s</button>
+          <button data-v="30" data-click="setTimerSec" data-args="30">30s</button>
+        </div>
+      </div>
+      <div class="volume-row">
+        <div class="volume-row-label"><span>🎯 Mục tiêu mỗi ngày</span><span id="goal-label">20 câu</span></div>
+        <div class="seg" id="goal-seg">
+          <button data-v="10" data-click="setDailyGoal" data-args="10">10</button>
+          <button data-v="20" data-click="setDailyGoal" data-args="20">20</button>
+          <button data-v="30" data-click="setDailyGoal" data-args="30">30</button>
+          <button data-v="50" data-click="setDailyGoal" data-args="50">50</button>
+          <button data-v="100" data-click="setDailyGoal" data-args="100">100</button>
+        </div>
+      </div>
+      <div class="volume-row">
+        <div class="volume-row-label">
+          <span>🔉 Âm lượng nhạc</span>
+          <span id="volume-label">15%</span>
+        </div>
+        <input type="range" id="setting-volume" class="volume-slider" min="0" max="100" value="15" data-input="updateVolume" data-args="@value">
+      </div>
+    </div>
+  </div>
+</div>
+<div id="reset-modal" class="modal-time-overlay">
+  <div class="modal-time-box">
+    <div class="modal-time-title" style="color:var(--wrong);">⚠️ Xoá toàn bộ lịch sử?</div>
+    <div class="modal-time-desc">Sẽ xoá sạch tiến trình, thống kê và sổ tay lỗi. Không thể hoàn tác!</div>
+    <div class="time-options">
+      <button class="time-btn" data-click="confirmReset" style="border-color:var(--wrong);color:#fca5a5;">🔥 Đồng ý xoá</button>
+      <button class="time-btn" data-click="closeResetModal" style="background:transparent;border:none;color:var(--muted);font-size:14px;">Huỷ bỏ</button>
+    </div>
+  </div>
+</div>
+<div id="pause-overlay" class="modal-time-overlay">
+  <div class="modal-time-box">
+    <div class="modal-time-title" style="color:var(--accent2);">⏸️ Tạm Dừng</div>
+    <div class="modal-time-desc">Mày muốn làm gì tiếp?</div>
+    <div class="time-options">
+      <button class="time-btn" data-click="togglePause" data-args="false" style="border-color:var(--correct);color:var(--correct);">▶️ Tiếp tục</button>
+      <button class="time-btn" data-click="restartCurrentGame" style="border-color:var(--fire);color:var(--fire);">🔄 Chơi lại</button>
+      <button class="time-btn" data-click="goHome" style="border-color:var(--muted);color:var(--muted);">🏠 Về màn hình chính</button>
+    </div>
+  </div>
+</div>
+<div id="quiz-dict-overlay" class="modal-time-overlay" style="padding-top:60px;align-items:flex-start;">
+  <div class="modal-time-box" style="text-align:left;max-width:600px;display:flex;flex-direction:column;">
+    <button class="btn-icon" style="position:absolute;top:16px;right:16px;" data-click="toggleQuizDict" data-args="false">✕</button>
+    <h3 class="modal-time-title" style="color:var(--accent2);margin-bottom:16px;">🔍 Tra từ nhanh</h3>
+    <div class="dict-search-wrap" style="margin-bottom:16px;">
+      <span class="dict-search-icon">🔍</span>
+      <input type="text" id="quiz-dict-search" class="dict-input" placeholder="Gõ Hán tự hoặc pinyin..." data-input="handleQuizSearch" data-args="@value" autocomplete="off">
+    </div>
+    <div id="quiz-dict-results" class="dict-results active" style="max-height:50vh;"></div>
+  </div>
+</div>
+<div id="srs-warning-modal" class="modal-time-overlay">
+  <div class="modal-time-box">
+    <div class="modal-time-title" style="color:var(--fire);">⚠️ Chưa có từ nào để ôn!</div>
+    <div class="modal-time-desc">Hiện tại bạn chưa có từ vựng nào bị sai trong sổ tay. Hãy chơi quiz và trả lời sai để hệ thống ghi nhận!</div>
+    <div class="time-options">
+      <button class="time-btn" data-click="closeSrsWarning" style="border-color:var(--fire);color:var(--fire);">Đã hiểu</button>
+    </div>
+  </div>
+</div>
+<div id="hsk-quiz-modal" class="modal-time-overlay">
+  <div class="modal-time-box hsk-quiz-box">
+    <div class="modal-time-title" style="color:#f472b6;">📝 Kiểm tra HSK</div>
+    <div class="modal-time-desc">Chọn kiểu và cấp độ. Đề được xáo thông minh: ưu tiên từ chưa gặp và từ bạn hay sai, đáp án nhiễu cùng cấp, độ dài tương đương, không trùng nghĩa.</div>
+    <div class="hsk-mode-switch">
+      <button class="hsk-mode-btn active" data-m="quiz" data-click="setHSKQuizMode" data-args="quiz|@this">📝 Kiểm tra</button>
+      <button class="hsk-mode-btn" data-m="listen" data-click="setHSKQuizMode" data-args="listen|@this">🎧 Nghe đoán</button>
+    </div>
+    <div class="hsk-level-grid" id="hsk-level-grid"></div>
+    <div class="time-options">
+      <button class="time-btn" data-click="closeHSKQuizModal" style="background:transparent;border:none;color:var(--muted);font-size:14px;">Đóng</button>
+    </div>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast">Đã copy!</div>
+<script src="Model/Data.js"></script>
+<script src="Model/HSK1.js"></script>
+<script src="Model/HSK2.js"></script>
+<script src="Model/HSK3.js"></script>
+<script src="Model/HSK4.js"></script>
+<script src="Model/HSK5.js"></script>
+<script src="Model/HSK6.js"></script>
+<script src="Model/js/app.js"></script>
+</body>
+</html>
